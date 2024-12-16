@@ -5,7 +5,7 @@ import LoginPage from './LoginPage';
 import TopupPage from './TopupPage';
 import TransferPage from './TransferPage';
 import { AccountHeader } from './Header';
-
+import RegisterPage from './RegisterPage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -46,6 +46,7 @@ export default function App() {
       <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Home" component={TabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginPage} />
+        <Stack.Screen name="Register" component={RegisterPage} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -3,6 +3,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { FlatList, StyleSheet, Text, View, Image, ImageBackground, Button, TouchableOpacity, Box } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import Feather from '@expo/vector-icons/Feather';
+import { useNavigation } from '@react-navigation/native';
 
 const img = require('./foto.png');
 const sun = require('./sun.png');
@@ -39,25 +40,18 @@ const data = [
     amount: '-75.000,00',
     amountColor: '#000',
   },
+  {
+    id: '5',
+    name: 'Amelia Hernawan',
+    type: 'Transfer',
+    date: '08 Desember 2024',
+    amount: '-75.000,00',
+    amountColor: '#000',
+  },
 ];
 
-const TransactionItem = ({ name, type, date, amount, amountColor, image }) => (
-  <View style={styles.itemContainer}>
-    <View style={styles.itemLeft}>
-      <Image source={image} style={styles.image} />
-      <View>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.type}>{type}</Text>
-        <Text style={styles.date}>{date}</Text>
-      </View>
-    </View>
-    <View>
-      <Text style={[styles.amount, { color: amountColor }]}>{amount}</Text>
-    </View>
-  </View>
-);
-
-export default function Home({ navigation }) {
+export default function Home() {
+  const navigation = useNavigation();
   return (
     <View style={{ flex: 1, backgroundColor: '#FAFBFD' }}>
       <View style={{ flexDirection: 'row', width: '100%', padding: 20, gap: 10, alignItems: 'center' }}>
@@ -110,8 +104,23 @@ export default function Home({ navigation }) {
         <FlatList
           data={data}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TransactionItem name={item.name} type={item.type} date={item.date} amount={item.amount} amountColor={item.amountColor} image={require('./sun.png')} />}
-        ></FlatList>
+          style={{ height: 290 }}
+          renderItem={({ item }) => (
+            <View style={{ flex: 1 }}>
+              <View style={{ padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', gap: 18, alignItems: 'center' }}>
+                  <Image source={img} style={{ width: 50, height: 50 }}></Image>
+                  <View>
+                    <Text>{item.name}</Text>
+                    <Text style={{ fontSize: 12 }}>{item.type}</Text>
+                    <Text style={{ fontSize: 10, color: '#939393' }}>{item.date}</Text>
+                  </View>
+                </View>
+                <Text style={{ fontSize: 14, fontWeight: 400 }}>{item.amount}</Text>
+              </View>
+            </View>
+          )}
+        />
         {/* <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
             <Image source={sun} style={{ width: 30, height: 30 }} />

@@ -52,8 +52,10 @@ export default function LoginPage() {
         <View style={{ flexDirection: 'row' }}>
           <Text>Don't have an account? </Text>
           <Text>
-            <TouchableOpacity onPress={() => console.log('Register clicked')}>
-              <Text style={{ color: 'teal' }}>Register Here</Text>
+            <TouchableOpacity>
+              <Text style={{ color: 'teal' }} onPress={() => navigation.navigate('Register')}>
+                Register Here
+              </Text>
             </TouchableOpacity>
           </Text>
         </View>

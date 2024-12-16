@@ -1,9 +1,15 @@
 import { SafeAreaView, StyleSheet, Text, View, Image, ImageBackground, Button, TouchableOpacity, Box, TextInput } from 'react-native';
 import FormComponent from './form';
+import TermConditionPage from './TermConditionPage';
+import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
 
 const img = require('./walled.png');
 
 export default function RegisterPage() {
+  const navigation = useNavigation();
+  const [tncVisible, setTncVisible] = useState(false);
+
   return (
     <View style={{ flex: 1, justifyContent: 'space-evenly' }}>
       <View style={{ marginTop: 35, alignItems: 'center' }}>
@@ -16,9 +22,10 @@ export default function RegisterPage() {
         <View style={{ flexDirection: 'row' }}>
           <Text>I have read and agree to the </Text>
           <Text>
-            <TouchableOpacity onPress={() => console.log('Terms n Condition clicked')}>
+            <TouchableOpacity onPress={() => setTncVisible(true)}>
               <Text style={{ color: 'teal' }}>Terms and Conditions *</Text>
             </TouchableOpacity>
+            <TermConditionPage visible={tncVisible} onClose={() => setTncVisible(false)} />
           </Text>
         </View>
       </View>
@@ -31,8 +38,10 @@ export default function RegisterPage() {
         <View style={{ flexDirection: 'row' }}>
           <Text>Already have an account? </Text>
           <Text>
-            <TouchableOpacity onPress={() => console.log('Login clicked')}>
-              <Text style={{ color: 'teal' }}>Login Here</Text>
+            <TouchableOpacity>
+              <Text style={{ color: 'teal' }} onPress={() => navigation.navigate('Login')}>
+                Login Here
+              </Text>
             </TouchableOpacity>
           </Text>
         </View>
