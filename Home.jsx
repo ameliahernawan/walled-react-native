@@ -1,9 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { FlatList, StyleSheet, Text, View, Image, ImageBackground, Button, TouchableOpacity, Box } from 'react-native';
+import { FlatList, StyleSheet, Text, View, Image, ImageBackground, Button, TouchableOpacity, Box, ActivityIndicator } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import { fetchPost } from './api/restApi';
+import { useEffect, useState } from 'react';
 
 const img = require('./foto.png');
 const sun = require('./sun.png');
@@ -52,6 +54,37 @@ const data = [
 
 export default function Home() {
   const navigation = useNavigation();
+  const [posts, setPost] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // useEffect(() => {
+  //   const getPost = async () => {
+  //     try {
+  //       const data = await fetchPost();
+  //       console.log('Fetched Data:', data);
+  //       setPost(data);
+  //     } catch (err) {
+  //       setError(err.message);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   getPost();
+  // }, []);
+
+  // if (loading) {
+  //   return <ActivityIndicator size="large" color="#0000ff" />;
+  // }
+
+  // if (error) {
+  //   return (
+  //     <View>
+  //       <Text>{error}</Text>
+  //     </View>
+  //   );
+  // }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#FAFBFD' }}>
       <View style={{ flexDirection: 'row', width: '100%', padding: 20, gap: 10, alignItems: 'center' }}>
@@ -61,6 +94,23 @@ export default function Home() {
         </View>
         <Image source={sun} style={{ width: 81.45, height: 77 }} />
       </View>
+
+      {/* <FlatList
+        data={posts}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={{ flex: 1 }}>
+            <View style={{ padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text>{item.first_name}</Text>
+                <Text>{item.last_name}</Text>
+                <Image source={{ uri: item.avatar }} style={{ width: 50, height: 50, borderRadius: 25 }} />
+              </View>
+              <Text style={{ fontSize: 14, fontWeight: 400 }}>{item.amount}</Text>
+            </View>
+          </View>
+        )}
+      /> */}
 
       <View style={{ paddingHorizontal: 10 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: 'teal', padding: 15, borderRadius: 20, elevation: 1 }}>
@@ -121,7 +171,7 @@ export default function Home() {
             </View>
           )}
         />
-        {/* <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'space-between', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
             <Image source={sun} style={{ width: 30, height: 30 }} />
             <View>
@@ -175,7 +225,7 @@ export default function Home() {
           <View>
             <Text>-75.000,00</Text>
           </View>
-        </View> */}
+        </View>
       </View>
     </View>
   );
