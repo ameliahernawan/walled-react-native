@@ -1,5 +1,5 @@
 import React, { use, useState } from 'react';
-import { StyleSheet, SafeAreaView, TextInput, Text, KeyboardAvoidingView, Button } from 'react-native';
+import { StyleSheet, SafeAreaView, TextInput, View, Text, KeyboardAvoidingView, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { login, register } from './api/restApi';
 import { useAuth } from './context/AuthContext';
@@ -10,36 +10,48 @@ export default function FormComponent({ state }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  // const [error, setError] = useState({});
-  const { login: setLoginState, register: setRegisterState } = useAuth();
+  const auth = useAuth();
   const navigation = useNavigation();
 
-  const handleSubmit = () => {
-    if (state === 'Login') {
-      handleLogin(email, password);
-    } else {
-      handleRegister(name, email, password, phoneNumber);
+  const handleSubmitLogin = () => {
+    if (!email || !password) {
+      alert('Validation Error', 'Email and Password are required');
+      return;
     }
+    handleLogin(email, password);
+  };
+
+  const handleSubmitRegister = () => {
+    if (!name || !email || !password) {
+      alert('Validation Error', 'Name, Email, and Password are required');
+      return;
+    }
+    handleRegister(name, email, password);
   };
 
   const handleLogin = async (email, password) => {
     try {
-      const { token } = await login(email, password);
-      // console.log(result);
-      AsyncStorage.setItem('userToken', token);
-      alert('Success', 'Login successful');
+      const response = await login(email, password);
+      // await auth.login(response.data.token);
+      // console.log('HAHAHHAHAHAHAHAHH');
+      // console.log(response.data.tokenn);
+      AsyncStorage.setItem('userToken', response.token);
+      console.log(response.token);
       navigation.navigate('Home');
+      alert('Success', 'Login successful');
     } catch (error) {
       alert('Error', error.message);
     }
   };
 
-  const handleRegister = async (full_name, email, password, phone_number) => {
+  const handleRegister = async (name, email, password) => {
     try {
-      const { token } = await register(full_name, email, password, phone_number);
-      setRegisterState(token);
+      const response = await register(name, email, password);
+      await auth.register(response.data.token);
+      // const { token } = await register(name, email, password);
+      console.log(response.data.token);
+      navigation.navigate('Login');
       alert('Success', 'Register successful');
-      navigation.navigate('Home');
     } catch (error) {
       alert('Error', error.message);
     }
@@ -85,15 +97,19 @@ export default function FormComponent({ state }) {
             {/* {error.phoneNumber && <Text style={styles.error}>{error.phoneNumber}</Text>} */}
           </>
         )}
-
         <TextInput style={styles.input} placeholder="Enter your email" value={email} onChangeText={setEmail} autoCorrect={false} autoCapitalize="none"></TextInput>
-        {/* {error.email && <Text>{error.email}</Text>} */}
-
         <TextInput style={styles.input} placeholder="Enter your password" value={password} onChangeText={setPassword} autoCorrect={false} autoCapitalize="none" secureTextEntry></TextInput>
-        {/* {error.password && <Text>{error.password}</Text>} */}
       </KeyboardAvoidingView>
 
-      <Button title={state === 'Login' ? 'Login' : 'Register'} onPress={handleSubmit} />
+      {state === 'register' ? (
+        <View style={[styles.button, styles.primary]}>
+          <Button title="Register" color="white" onPress={handleSubmitRegister} />
+        </View>
+      ) : (
+        <View style={[styles.button, styles.primary]}>
+          <Button title="Login" color="white" onPress={handleSubmitLogin} />
+        </View>
+      )}
     </SafeAreaView>
   );
 }

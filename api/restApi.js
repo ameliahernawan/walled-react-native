@@ -5,27 +5,21 @@ const token = AsyncStorage.getItem('userToken');
 
 const api = axios.create({
   baseURL: 'http://54.254.164.127/api/v1',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: 'Bearer ' + token,
-  },
 });
 
-export const fetchPosts = async () => {
+export const fetchUser = async () => {
+  const token = await AsyncStorage.getItem('userToken');
   try {
-    const response = await api.get('/auth/users');
+    const response = await api.get('/users/me', {
+      headers: {
+        Authorization: 'Bearer ' + token,
+      },
+    });
     return response.data.data;
   } catch (error) {
-    throw new Error('Failed to fetch posts: ' + error.message);
-  }
-};
-
-export const createPost = async (postData) => {
-  try {
-    const response = await api.post('/auth/users', postData);
-    return response.data;
-  } catch (error) {
-    throw new Error('Failed to create post: ' + error.message);
+    console.error('Error fetching user:', error);
+    // Optionally throw an error to be caught by the caller
+    throw new Error('Failed to fetch user data');
   }
 };
 
@@ -35,11 +29,12 @@ export const login = async (email, password) => {
       email,
       password,
     };
+    // console.log(body);
+
     const response = await api.post('/auth/login', body);
-    // console.log(response);
+    // console.log(response.data);
     return response.data.data;
   } catch (error) {
-    // console.log(error);
     throw new Error(error.response?.data?.error || 'Login failed');
   }
 };
@@ -56,6 +51,42 @@ export const register = async (fullName, email, password, phoneNumber) => {
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || 'Registration failed');
+  }
+};
+
+export const fetchTransactions = async () => {
+  const token = await AsyncStorage.getItem('userToken');
+  try {
+    const response = await api.get('/transactions', {
+      headers: {
+        Authorization: 'Bearer ' + token,
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Get transactions failed');
+  }
+};
+
+export const topUp = async (type, from_to, amount, description) => {
+  const token = await AsyncStorage.getItem('userToken');
+  if (!token) {
+    throw new Error('User token not found');
+  }
+  try {
+    const response = await api.post(
+      '/transactions',
+      { type, from_to, amount, description },
+      {
+        headers: {
+          Authorization: 'Bearer ' + token, // Optional: if your backend requires token in header
+        },
+      }
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating transaction:', error.response?.data || error.message);
+    throw new Error('Failed to create transaction: ' + error.message);
   }
 };
 

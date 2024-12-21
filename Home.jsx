@@ -1,231 +1,171 @@
-import { StatusBar } from 'expo-status-bar';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, Text, Image, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { FlatList, StyleSheet, Text, View, Image, ImageBackground, Button, TouchableOpacity, Box, ActivityIndicator } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 import Feather from '@expo/vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
-import { fetchPost } from './api/restApi';
-import { useEffect, useState } from 'react';
+import Toast from 'react-native-toast-message';
+
+import { fetchUser, fetchTransactions } from './api/restApi';
 
 const img = require('./foto.png');
 const sun = require('./sun.png');
-const data = [
-  {
-    id: '1',
-    name: 'Amelia Hernawan',
-    type: 'Transfer',
-    date: '08 Desember 2024',
-    amount: '-75.000,00',
-    amountColor: '#000',
-  },
-  {
-    id: '2',
-    name: 'Amelia Hernawan',
-    type: 'Transfer',
-    date: '08 Desember 2024',
-    amount: '+75.000,00',
-    amountColor: '#2DC071',
-  },
-  {
-    id: '3',
-    name: 'Amelia Hernawan',
-    type: 'Transfer',
-    date: '08 Desember 2024',
-    amount: '-75.000,00',
-    amountColor: '#000',
-  },
-  {
-    id: '4',
-    name: 'Amelia Hernawan',
-    type: 'Transfer',
-    date: '08 Desember 2024',
-    amount: '-75.000,00',
-    amountColor: '#000',
-  },
-  {
-    id: '5',
-    name: 'Amelia Hernawan',
-    type: 'Transfer',
-    date: '08 Desember 2024',
-    amount: '-75.000,00',
-    amountColor: '#000',
-  },
-];
 
 export default function Home() {
   const navigation = useNavigation();
-  const [posts, setPost] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // useEffect(() => {
-  //   const getPost = async () => {
-  //     try {
-  //       const data = await fetchPost();
-  //       console.log('Fetched Data:', data);
-  //       setPost(data);
-  //     } catch (err) {
-  //       setError(err.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   getPost();
-  // }, []);
+  // const fetchData = async () => {
+  //   try {
+  //     setIsLoading(true);
+  //     setError(null);
 
-  // if (loading) {
-  //   return <ActivityIndicator size="large" color="#0000ff" />;
-  // }
+  //     // Fetch user and transactions concurrently
+  //     const [userData, transactionsData] = await Promise.all([fetchUser(), fetchTransactions()]);
 
-  // if (error) {
-  //   return (
-  //     <View>
-  //       <Text>{error}</Text>
-  //     </View>
-  //   );
-  // }
+  //     setUser(userData);
+  //     setTransactions(transactionsData);
+  //   } catch (err) {
+  //     console.error('Data fetching error:', err);
+  //     setError(err.message);
+
+  //     Toast.show({
+  //       type: 'error',
+  //       text1: 'Error',
+  //       text2: err.message || 'Failed to load data',
+  //     });
+  //   } finally {
+  //     setIsLoading(false);
+  //     setRefreshing(false);
+  //   }
+  // };
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const [userData, transactionsData] = await Promise.all([fetchUser(), fetchTransactions()]);
+
+      console.log('User Data:', userData); // Debug
+      setUser(userData);
+      setTransactions(transactionsData);
+    } catch (err) {
+      console.error('Data fetching error:', err);
+      setError(err.message);
+
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: err.message || 'Failed to load data',
+      });
+    } finally {
+      setIsLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Initial data fetch
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData();
+  }, []);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <View style={styles.centeredContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <View style={styles.centeredContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity onPress={fetchData} style={styles.retryButton}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FAFBFD' }}>
-      <View style={{ flexDirection: 'row', width: '100%', padding: 20, gap: 10, alignItems: 'center' }}>
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
         <View>
-          <Text style={{ fontWeight: 700, fontSize: 25 }}>Good morning, Amel</Text>
-          <Text style={{ fontSize: 15 }}>Check all your incoming and outgoing transactions here</Text>
+          <Text style={styles.greeting}>Good morning, {user.full_name}</Text>
+          <Text style={styles.subheader}>Check all your incoming and outgoing transactions here</Text>
         </View>
-        <Image source={sun} style={{ width: 81.45, height: 77 }} />
+        <Image source={sun} style={styles.sunIcon} />
       </View>
 
-      {/* <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={{ flex: 1 }}>
-            <View style={{ padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text>{item.first_name}</Text>
-                <Text>{item.last_name}</Text>
-                <Image source={{ uri: item.avatar }} style={{ width: 50, height: 50, borderRadius: 25 }} />
-              </View>
-              <Text style={{ fontSize: 14, fontWeight: 400 }}>{item.amount}</Text>
-            </View>
-          </View>
-        )}
-      /> */}
-
-      <View style={{ paddingHorizontal: 10 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', backgroundColor: 'teal', padding: 15, borderRadius: 20, elevation: 1 }}>
-          <Text style={{ color: 'white', fontWeight: 500, fontSize: 18 }}>Account No.</Text>
-          <Text style={{ color: 'white', fontWeight: 500, fontSize: 18 }}>100899</Text>
+      <View style={styles.contentPadding}>
+        <View style={styles.accountNumberCard}>
+          <Text style={styles.accountNumberText}>Account No.</Text>
+          <Text style={styles.accountNumberText}>{user.account_no}</Text>
         </View>
 
-        <View style={{ flexDirection: 'row', backgroundColor: 'white', marginTop: 20, padding: 25, justifyContent: 'space-between', borderRadius: 10, elevation: 1, alignItems: 'center' }}>
+        <View style={styles.balanceCard}>
           <View>
-            <Text style={{ fontSize: 16 }}>Balance</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 26, fontWeight: 700 }}>Rp 10.000.000</Text>
+            <Text style={styles.balanceLabel}>Balance</Text>
+            <View style={styles.balanceRow}>
+              <Text style={styles.balanceAmount}>{user.balance}</Text>
               <Ionicons name="eye-outline" size={24} color="#E5E5E5" />
             </View>
           </View>
 
-          <View style={{ gap: 10 }}>
-            <TouchableOpacity>
-              <Ionicons name="add" color="white" size={30} style={{ backgroundColor: 'teal', padding: 8, borderRadius: 5, elevation: 2 }} onPress={() => navigation.navigate('Topup')} />
+          <View style={styles.actionButtons}>
+            <TouchableOpacity onPress={() => navigation.navigate('Topup')}>
+              <Ionicons name="add" color="white" size={30} style={styles.actionButton} />
             </TouchableOpacity>
-            <TouchableOpacity>
-              <Feather name="send" color="white" size={25} style={{ backgroundColor: 'teal', padding: 10, borderRadius: 5, elevation: 2 }} onPress={() => navigation.navigate('Transfer')} />
+            <TouchableOpacity onPress={() => navigation.navigate('Transfer')}>
+              <Feather name="send" color="white" size={25} style={styles.actionButton} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      <View style={{ margin: 20 }}>
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: 600,
-            padding: 12,
-            borderBottomWidth: 1, // Menambahkan garis bawah
-            borderBottomColor: '#E5E5E5',
-          }}
-        >
-          Transaction History
-        </Text>
+      <View style={styles.transactionSection}>
+        <Text style={styles.transactionHeader}>Transaction History</Text>
 
         <FlatList
-          data={data}
-          keyExtractor={(item) => item.id}
-          style={{ height: 290 }}
+          data={transactions}
+          keyExtractor={(item) => item.id.toString()}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#9Bd35A', '#689F38']} />}
           renderItem={({ item }) => (
-            <View style={{ flex: 1 }}>
-              <View style={{ padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row', gap: 18, alignItems: 'center' }}>
-                  <Image source={img} style={{ width: 50, height: 50 }}></Image>
-                  <View>
-                    <Text>{item.name}</Text>
-                    <Text style={{ fontSize: 12 }}>{item.type}</Text>
-                    <Text style={{ fontSize: 10, color: '#939393' }}>{item.date}</Text>
-                  </View>
+            <View style={styles.transactionItem}>
+              <View style={styles.transactionDetails}>
+                <Image source={img} style={styles.transactionImage} />
+                <View>
+                  {/* <Text>{item.id}</Text> */}
+                  <Text>{item.name ?? 'Top Up'}</Text>
+                  <Text style={styles.transactionType}>{item.type}</Text>
+                  <Text style={styles.transactionDate}>{item.created_at}</Text>
                 </View>
-                <Text style={{ fontSize: 14, fontWeight: 400 }}>{item.amount}</Text>
               </View>
+              <Text
+                style={[
+                  styles.transactionAmount,
+                  {
+                    color: item.amount && item.amount.toString().startsWith('+') ? '#2DC071' : '#000',
+                  },
+                ]}
+              >
+                {item.amount}
+              </Text>
             </View>
           )}
         />
-        <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Image source={sun} style={{ width: 30, height: 30 }} />
-            <View>
-              <Text style={{ fontSize: 16 }}>Adityo Gizwanda</Text>
-              <Text style={{ fontSize: 14 }}>Transfer</Text>
-              <Text style={{ fontSize: 12, fontWeight: 400, color: '#939393' }}>08 December 2024</Text>
-            </View>
-          </View>
-          <View>
-            <Text>-75.000,00</Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Image source={sun} style={{ width: 30, height: 30 }} />
-            <View>
-              <Text style={{ fontSize: 16 }}>Adityo Gizwanda</Text>
-              <Text style={{ fontSize: 14 }}>Transfer</Text>
-              <Text style={{ fontSize: 12, fontWeight: 400, color: '#939393' }}>08 December 2024</Text>
-            </View>
-          </View>
-          <View>
-            <Text style={{ color: '#2DC071' }}>+75.000,00</Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Image source={sun} style={{ width: 30, height: 30 }} />
-            <View>
-              <Text style={{ fontSize: 16 }}>Adityo Gizwanda</Text>
-              <Text style={{ fontSize: 14 }}>Transfer</Text>
-              <Text style={{ fontSize: 12, fontWeight: 400, color: '#939393' }}>08 December 2024</Text>
-            </View>
-          </View>
-          <View>
-            <Text>-75.000,00</Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', padding: 10, justifyContent: 'space-between', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <Image source={sun} style={{ width: 30, height: 30 }} />
-            <View>
-              <Text style={{ fontSize: 16 }}>Adityo Gizwanda</Text>
-              <Text style={{ fontSize: 14 }}>Transfer</Text>
-              <Text style={{ fontSize: 12, fontWeight: 400, color: '#939393' }}>08 December 2024</Text>
-            </View>
-          </View>
-          <View>
-            <Text>-75.000,00</Text>
-          </View>
-        </View>
       </View>
     </View>
   );
@@ -234,20 +174,124 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 50,
+    backgroundColor: '#FAFBFD',
   },
-  box: {
+  centeredContainer: {
     flex: 1,
-    width: 200,
-    height: 200,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    margin: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  button: {
-    backgroundColor: 'red',
-    fontSize: 100,
+  errorText: {
+    color: 'red',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: 'teal',
+    padding: 10,
+    borderRadius: 5,
+  },
+  retryButtonText: {
+    color: 'white',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    padding: 20,
+    gap: 10,
+    alignItems: 'center',
+  },
+  greeting: {
+    fontWeight: '700',
+    fontSize: 25,
+  },
+  subheader: {
+    fontSize: 15,
+  },
+  sunIcon: {
+    width: 81.45,
+    height: 77,
+  },
+  contentPadding: {
+    paddingHorizontal: 10,
+  },
+  accountNumberCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: 'teal',
     padding: 15,
+    borderRadius: 20,
+    elevation: 1,
+  },
+  accountNumberText: {
+    color: 'white',
+    fontWeight: '500',
+    fontSize: 18,
+  },
+  balanceCard: {
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    marginTop: 20,
+    padding: 25,
+    justifyContent: 'space-between',
+    borderRadius: 10,
+    elevation: 1,
+    alignItems: 'center',
+  },
+  balanceLabel: {
+    fontSize: 16,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  balanceAmount: {
+    fontSize: 26,
+    fontWeight: '700',
+  },
+  actionButtons: {
+    gap: 10,
+  },
+  actionButton: {
+    backgroundColor: 'teal',
+    padding: 8,
+    borderRadius: 5,
+    elevation: 2,
+  },
+  transactionSection: {
+    margin: 20,
+  },
+  transactionHeader: {
+    fontSize: 20,
+    fontWeight: '600',
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  transactionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+  },
+  transactionDetails: {
+    flexDirection: 'row',
+    gap: 18,
+    alignItems: 'center',
+  },
+  transactionImage: {
+    width: 50,
+    height: 50,
+  },
+  transactionType: {
+    fontSize: 12,
+  },
+  transactionDate: {
+    fontSize: 10,
+    color: '#939393',
+  },
+  transactionAmount: {
+    fontSize: 14,
+    fontWeight: '400',
   },
 });
